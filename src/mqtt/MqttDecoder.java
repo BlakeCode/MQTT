@@ -13,14 +13,15 @@ public class MqttDecoder {
 
     private MqttFixedHeader fixedHeader;
     private Object variableHeader;
+    private Object payload;
 
-    private int totalLength, currentIndex, remainLength;
+    private int totalLength, currentIndex;
 
     /**
      * description: decode the byte[] to MqttPacket
      * author blake
      * date 2020-10-08 09:31:00
-     * param: buffer
+     * @param: buffer
      * return void
      **/
     public void decode(byte[] buffer) throws Exception {
@@ -29,13 +30,22 @@ public class MqttDecoder {
         fixedHeader = decodeFixedHeader(buffer);
         variableHeader = decodeVariableHeader(buffer);
 
+        MqttPacket packet;
+        if(currentIndex + 1 == totalLength) {
+            packet = new MqttPacket(fixedHeader, variableHeader);
+        } else if (currentIndex + 1 < totalLength) {
+            payload = decodePayload(buffer);
+            packet = new MqttPacket(fixedHeader, variableHeader, payload);
+        } else {
+            throw new Exception("decode payload error.");
+        }
     }
 
     /**
      * description: decode Fixed Header
      * author blake
      * date 2020-10-08 10:09:09
-     * param: buffer
+     * @param: buffer
      * return mqtt.MqttFixedHeader
      **/
     private MqttFixedHeader decodeFixedHeader(byte[] buffer) throws Exception{
@@ -76,10 +86,10 @@ public class MqttDecoder {
      * description: decode Variable Header
      * author blake
      * date 2020-10-08 10:42:17
-     * param: buffer
+     * @param: buffer
      * return Object
      **/
-    private Object decodeVariableHeader(byte[] buffer) throws Exception{
+    private Object decodeVariableHeader(byte[] buffer) throws Exception {
 
         MqttPacketType packetType = fixedHeader.getMqttPacketType();
 
@@ -94,10 +104,22 @@ public class MqttDecoder {
     }
 
     /**
+     * description: decode Payload in some packet type
+     * author blake
+     * date   2020-10-17 15:46:30
+     * @param: buffer
+     * return Object
+     **/
+    private Object decodePayload(byte[] buffer) throws Exception {
+
+        return null;
+    }
+
+    /**
      * description: decode Variable Header - Connect
      * author blake
      * date 2020-10-08 10:45:42
-     * param: buffer
+     * @param: buffer
      * return mqtt.MqttConnectVariableHeader
      **/
     private MqttConnectVariableHeader decodeConnectVariableHeader(byte[] buffer) throws Exception {
@@ -139,7 +161,7 @@ public class MqttDecoder {
      * description: decode Variable Header - ConnAck
      * author blake
      * date 2020-10-08 10:46:41
-     * param: buffer
+     * @param: buffer
      * return mqtt.MqttConnAckVariableHeader
      **/
     private MqttConnAckVariableHeader decodeConnAckVariableHeader(byte[] buffer) throws Exception{
@@ -154,11 +176,11 @@ public class MqttDecoder {
         return new MqttConnAckVariableHeader(isSessionPresent, reasonCode, connAckProerties);
     }
 
-    /*
+    /**
      * description:
      * author blake
      * date   2020-10-08 14:16:13
-     * param: buffer
+     * @param: buffer
      * return mqtt.MqttProperties
      **/
     private MqttProperties decodeProperties(byte[] buffer) throws Exception {
@@ -269,4 +291,5 @@ public class MqttDecoder {
         currentIndex += propertiesLength;
         return properties;
     }
+
 }

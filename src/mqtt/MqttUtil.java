@@ -1,5 +1,7 @@
 package mqtt;
 
+import io.netty.util.CharsetUtil;
+
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -13,7 +15,7 @@ public final class MqttUtil {
      * description: 1.5.2 encode short Int(0~65535) to Two Byte Int
      * author blake
      * date 2020-10-07 10:04:00
-     * param: number
+     * @param: number
      * return byte[]
      **/
     public static byte[] encodeShortToTwoByte(int number) {
@@ -44,7 +46,7 @@ public final class MqttUtil {
      * description: 1.5.3 encode Int(0~2^32) to Four Byte Int
      * author blake
      * date 2020-10-07 18:08:35
-     * param: number
+     * @param: number
      * return byte[]
      **/
     public static byte[] encodeIntToFourByte(int number) {
@@ -81,7 +83,7 @@ public final class MqttUtil {
      * description: 1.5.4 encode String to UTF-8 String
      * author blake
      * date 2020-10-07 19:44:21
-     * param: str
+     * @param: str
      * return byte[]
      **/
     public static byte[] encodeStringToUTF8String(String str) {
@@ -99,11 +101,22 @@ public final class MqttUtil {
         return bos.toByteArray();
     }
 
+    public static String decodeUTF8StringToString(byte[] strBytes) throws Exception{
+
+        int length = decodeTwoByteToInt(getBytes(strBytes, 0, 2));
+        if (length + 2 != strBytes.length) {
+            throw new IllegalArgumentException("error in decodeUTF8StringToString().");
+        }
+
+        return new String(getBytes(strBytes, 2, strBytes.length), CharsetUtil.UTF_8);
+
+    }
+
     /**
      * description: 1.5.5 encode a non-negative Int into Variable Bytes
      * author blake
      * date 2020-10-02 21:13:12
-     * param: number
+     * @param: number
      * return byte[]
      **/
     public static byte[] encodeIntToVariableBytes(int number) {

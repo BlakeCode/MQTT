@@ -1,6 +1,6 @@
 package mqtt;
 
-public enum MqttPubAckReasonCode {
+public enum MqttPublishReasonCode {
 
     SUCCESS((byte)0x00),
     NO_MATCHING_SUBSCRIBERS((byte)0x10),
@@ -14,9 +14,9 @@ public enum MqttPubAckReasonCode {
     ;
 
     private byte value;
-    MqttPubAckReasonCode(byte value) { this.value = value; }
+    MqttPublishReasonCode(byte value) { this.value = value; }
 
-    private static final MqttPubAckReasonCode[] VALUES = MqttPubAckReasonCode.values();
+    private static final MqttPublishReasonCode[] VALUES = MqttPublishReasonCode.values();
     public byte getValue() {
         return this.value;
     }
@@ -26,11 +26,11 @@ public enum MqttPubAckReasonCode {
      * author blake
      * date   2020-10-17 19:21:49
      * @param: value
-     * return mqtt.MqttPubAckReasonCode
+     * return mqtt.MqttPublishReasonCode
      **/
-    public static MqttPubAckReasonCode valueOf(byte value) {
+    public static MqttPublishReasonCode valueOf(byte value) {
 
-        MqttPubAckReasonCode reasonCode = null;
+        MqttPublishReasonCode reasonCode = null;
         try {
             reasonCode = VALUES[value];
         } catch (ArrayIndexOutOfBoundsException ex) {

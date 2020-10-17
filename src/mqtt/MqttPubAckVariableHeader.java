@@ -3,18 +3,18 @@ package mqtt;
 public class MqttPubAckVariableHeader {
 
     private int packetIdentifier;
-    private MqttPubAckReasonCode reasonCode;
+    private MqttPublishReasonCode reasonCode;
     private int propertyLength;
     private MqttProperties properties;
 
-    public MqttPubAckVariableHeader(int packetIdentifier, MqttPubAckReasonCode reasonCode) {
+    public MqttPubAckVariableHeader(int packetIdentifier, MqttPublishReasonCode reasonCode) {
         this.packetIdentifier = packetIdentifier;
         this.reasonCode = reasonCode;
         this.properties = null;
         this.propertyLength = 0;
     }
 
-    public MqttPubAckVariableHeader(int packetIdentifier, MqttPubAckReasonCode reasonCode, MqttProperties properties) {
+    public MqttPubAckVariableHeader(int packetIdentifier, MqttPublishReasonCode reasonCode, MqttProperties properties) {
         this.packetIdentifier = packetIdentifier;
         this.reasonCode = reasonCode;
         this.properties = properties;
@@ -22,7 +22,7 @@ public class MqttPubAckVariableHeader {
 
     public int getPacketIdentifier() { return packetIdentifier; }
 
-    public MqttPubAckReasonCode getReasonCode() { return reasonCode; }
+    public MqttPublishReasonCode getReasonCode() { return reasonCode; }
 
     public int getPropertyLength() { return propertyLength; }
 

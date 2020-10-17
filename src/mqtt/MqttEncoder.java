@@ -13,6 +13,12 @@ public class MqttEncoder {
         switch (packet.getMqttFixedHeader().getMqttPacketType()) {
             case CONNECT:
                 return encodeConnectPacket((MqttConnectPacket)packet);
+            case CONNACK:
+                return encodeConnAckPacket((MqttConnAckPacket)packet);
+            case PUBLISH:
+                return encodePublishPacket((MqttPublishPacket)packet);
+            case PUBACK:
+                return encodePubAckPacket((MqttPubAckPacket)packet);
             default:
                 throw new IllegalArgumentException("Unknown packet type: " +
                         packet.getMqttFixedHeader().getMqttPacketType()
@@ -24,7 +30,7 @@ public class MqttEncoder {
      * description: encode CONNECT packet
      * author blake
      * date 2020-10-02 21:17:35
-     * param: packet
+     * @param: packet
      * return byte[]
      **/
     public static byte[] encodeConnectPacket(MqttConnectPacket packet) throws Exception {
@@ -33,8 +39,6 @@ public class MqttEncoder {
         MqttFixedHeader fixedHeader = packet.getConnectFixedHeader();
         MqttConnectVariableHeader variableHeader = packet.getConnectVariableHeader();
         MqttConnectPayload payload = packet.getConnectPayload();
-
-        System.out.println("OK");
 
         // 3.1.2 byte 1 - 7 of Variable Header
         byte[] protocalNameAndVersion = new byte[]{0x0, 0x4,
@@ -52,7 +56,7 @@ public class MqttEncoder {
         byte[] connectPropertyBytesLength = MqttUtil.encodeIntToVariableBytes(connectPropertyBytes.length);
         int variableByteSize = 10 + connectPropertyBytes.length + connectPropertyBytesLength.length;
 
-        System.out.println("OK");
+
 
         // 3.1.3 Connect Payload
         int payloadByteSize = 0;
@@ -131,6 +135,13 @@ public class MqttEncoder {
         return bos.toByteArray();
     }
 
+    /**
+     * description: encode CONNACK packet
+     * author blake
+     * date   2020-10-17 15:52:50
+     * @param: packet
+     * return byte[]
+     **/
     public static byte[] encodeConnAckPacket(MqttConnAckPacket packet) throws Exception {
 
         // Fixed + Variable
@@ -139,8 +150,11 @@ public class MqttEncoder {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
+        // 3.2.2.1 Session Present
         byte sessionPresent = (byte)(variableHeader.isSessionPresent() ? 1 : 0);
+        // 3.2.2.2 Connect Reason Code
         byte connectReasonCode = variableHeader.getConnectReasonCode().getValue();
+        // 3.2.2.3 Connack Properties
         byte[] connackProperties = encodeProperties(variableHeader.getConnackProperties());
         byte[] connackPropertiesLength = MqttUtil.encodeIntToVariableBytes(connackProperties.length);
 
@@ -158,17 +172,97 @@ public class MqttEncoder {
 
         return bos.toByteArray();
     }
+
+    /**
+     * description: encode PUBLISH packet
+     * author blake
+     * date   2020-10-17 15:55:29
+     * @param: packet
+     * return byte[]
+     **/
+    public static byte[] encodePublishPacket(MqttPublishPacket packet) throws Exception {
+
+        // Fixed Header + Variable Header + Payload
+        MqttFixedHeader fixedHeader = packet.getPublishFixedHeader();
+        MqttPublishVariableHeader variableHeader = packet.getPublishVariableHeader();
+        byte[] payload = packet.getPublishPayload();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        // 3.3.2 Publish Variable Header
+        // 3.3.2.1 Topic Name
+        byte[] topicNameBytes = MqttUtil.encodeStringToUTF8String(variableHeader.getTopicName());
+        // 3.3.2.2 Packet Identifier
+        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        // 3.3.2.3 PUBLISH Properties
+        byte[] publishProperties = encodeProperties(variableHeader.getPublishProperties());
+        byte[] publishPropertiesLength = MqttUtil.encodeIntToVariableBytes(publishProperties.length);
+        int variableHeaderByteSize = topicNameBytes.length + packetIdentifier.length +
+                publishProperties.length + publishPropertiesLength.length;
+
+        // 3.3.1 write the 1st byte of Fixed Header
+        bos.write(encodeFixedHeaderByte1(fixedHeader));
+        // 3.3.1 write the 2nd byte of Fixed Header
+        bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payload.length));
+        // 3.3.2 write the Variable Header
+        bos.write(topicNameBytes);
+        bos.write(packetIdentifier);
+        bos.write(publishPropertiesLength);
+        bos.write(publishProperties);
+        // 3.3.3 write the Payload
+        bos.write(payload);
+
+        return bos.toByteArray();
+
+    }
+
+    /**
+     * description: encode PubAck packet
+     * author blake
+     * date   2020-10-17 19:32:35
+     * @param: packet
+     * return byte[]
+     **/
+    public static byte[] encodePubAckPacket(MqttPubAckPacket packet) throws Exception {
+
+        // Fixed Header + Variable Header
+        MqttFixedHeader fixedHeader = packet.getPubAckFixedHeader();
+        MqttPubAckVariableHeader variableHeader = packet.getPubAckVariableHeader();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        // 3.4.2 PUBACK Variable Header
+        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        byte reasonCode = variableHeader.getReasonCode().getValue();
+        byte[] properties = encodeProperties(variableHeader.getProperties());
+        byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
+        int variableHeaderByteSize = packetIdentifier.length + 1 +
+                propertiesLength.length + properties.length;
+
+        // 3.4.1 write the 1st byte of Fixed Header
+        bos.write(encodeFixedHeaderByte1(fixedHeader));
+        // 3.4.1 write the 2nd byte of Fixed Header
+        bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + 0));
+        // 3.4.2 write PUBACK Variable Header
+        bos.write(packetIdentifier);
+        bos.write(reasonCode);
+        bos.write(propertiesLength);
+        bos.write(properties);
+
+        return bos.toByteArray();
+    }
+
     /**
      * description: encode Properties to byte[]
      * author blake
      * date 2020-10-07 18:02:30
-     * param: mqttProperties
+     * @param: mqttProperties
      * return byte[]
      **/
     public static byte[] encodeProperties(MqttProperties mqttProperties) {
 
-        if(mqttProperties == null) {
-            return new byte[]{ 0x00 } ;
+        if (mqttProperties == null) {
+            return null;
         }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -250,7 +344,7 @@ public class MqttEncoder {
      * description: 2.1.3 编码 Fixed Header的第一个字节
      * author blake
      * date 2020-10-02 21:12:37
-     * param: fixedHeader
+     * @param: fixedHeader
      * return byte
      **/
     public static byte encodeFixedHeaderByte1(MqttFixedHeader fixedHeader) {
@@ -285,7 +379,7 @@ public class MqttEncoder {
      * description: 3.1.2 Connect Flags
      * author blake
      * date 2020-10-02 21:43:06
-     * param: variableHeader
+     * @param: variableHeader
      * return byte
      **/
     public static byte encodeConnectVariableHeaderFlags(MqttConnectVariableHeader variableHeader) {

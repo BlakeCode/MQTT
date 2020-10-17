@@ -37,7 +37,7 @@ public enum MqttPacketType {
      * description:
      * author blake
      * date   2020-10-01 16:37:32
-     * param: value
+     * @param: value
      * return MqttPacketType
      **/
     public static MqttPacketType valueOf(int value) {

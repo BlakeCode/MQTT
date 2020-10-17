@@ -48,7 +48,7 @@ public enum MqttConnectReasonCode {
      * return mqtt.MqttConnectReasonCode
      **/
 
-    public static MqttConnectReasonCode valueOf(int value) {
+    public static MqttConnectReasonCode valueOf(byte value) {
 
         MqttConnectReasonCode reasonCode = null;
         try {

@@ -28,9 +28,9 @@ public class Client {
                         false, MqttQoS.AT_MOST_ONCE, false, false, 20, null);
         MqttConnectPayload connectPayload =
                 new MqttConnectPayload("0001", null, null, null, "root", "123456".getBytes());
-        MqttConnectPacket connectPacket = new MqttConnectPacket(connectFixedHeader, connectVariableHeader, connectPayload);
 
-
+        // 工厂化包装
+        MqttPacket connectPacket = MqttPacketFactory.newPacket(connectFixedHeader, connectVariableHeader, connectPayload);
         outputStream.write(MqttEncoder.encode(connectPacket));
 
         outputStream.close();

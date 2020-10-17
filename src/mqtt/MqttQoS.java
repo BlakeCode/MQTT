@@ -21,7 +21,7 @@ public enum MqttQoS {
      * description:
      * author blake
      * date   2020-10-01 15:30:25
-     * param: value
+     * @param: value
      * return mqtt.MqttQoS
      **/
     public static MqttQoS valueOf(int value) {
