@@ -37,4 +37,5 @@ public class MqttFixedHeader{
     public boolean isReain() { return isReain; }
 
     public int getRemainingLength() { return remainingLength; }
+    public void setRemainingLength(int length) { this.remainingLength = length; }
 }

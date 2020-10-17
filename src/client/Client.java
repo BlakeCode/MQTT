@@ -30,8 +30,8 @@ public class Client {
                 new MqttConnectPayload("0001", null, null, null, "root", "123456".getBytes());
         MqttConnectPacket connectPacket = new MqttConnectPacket(connectFixedHeader, connectVariableHeader, connectPayload);
 
-        //socket.getOutputStream().write(connectPacket);
 
+        outputStream.write(MqttEncoder.encode(connectPacket));
 
         outputStream.close();
         socket.close();

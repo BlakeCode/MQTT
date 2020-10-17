@@ -106,7 +106,7 @@ public final class MqttUtil {
      * param: number
      * return byte[]
      **/
-    public static byte[] encodeIntToByte(int number) {
+    public static byte[] encodeIntToVariableBytes(int number) {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 

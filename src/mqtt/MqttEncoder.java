@@ -34,6 +34,8 @@ public class MqttEncoder {
         MqttConnectVariableHeader variableHeader = packet.getConnectVariableHeader();
         MqttConnectPayload payload = packet.getConnectPayload();
 
+        System.out.println("OK");
+
         // 3.1.2 byte 1 - 7 of Variable Header
         byte[] protocalNameAndVersion = new byte[]{0x0, 0x4,
                 'M', 'Q', 'T', 'T',
@@ -47,12 +49,16 @@ public class MqttEncoder {
 
         // 3.1.2.11 Connect Properties
         byte[] connectPropertyBytes = encodeProperties(variableHeader.getConnectProerties());
-        byte[] connectPropertyBytesLength = MqttUtil.encodeIntToByte(connectPropertyBytes.length);
+        byte[] connectPropertyBytesLength = MqttUtil.encodeIntToVariableBytes(connectPropertyBytes.length);
         int variableByteSize = 10 + connectPropertyBytes.length + connectPropertyBytesLength.length;
+
+        System.out.println("OK");
 
         // 3.1.3 Connect Payload
         int payloadByteSize = 0;
         ByteArrayOutputStream bosPayload = new ByteArrayOutputStream();
+
+
 
         // 3.1.3.1 Clinet IDentifier
         String clientIdentifier = payload.getClientIdentifier();
@@ -65,7 +71,7 @@ public class MqttEncoder {
 
             // 3.1.3.2 Will Properties
             byte[] willPropertyBytes = encodeProperties(payload.getWillProperties());
-            byte[] willPropertyBytesLength = MqttUtil.encodeIntToByte(willPropertyBytes.length);
+            byte[] willPropertyBytesLength = MqttUtil.encodeIntToVariableBytes(willPropertyBytes.length);
             payloadByteSize += willPropertyBytesLength.length + willPropertyBytes.length;
             bosPayload.write(willPropertyBytesLength);
             bosPayload.write(willPropertyBytes);
@@ -100,6 +106,7 @@ public class MqttEncoder {
             bosPayload.write(passwprd);
         }
 
+        fixedHeader.setRemainingLength(variableByteSize + payloadByteSize);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         // write the 1st byte of Fixed Header
@@ -108,7 +115,7 @@ public class MqttEncoder {
         if(fixedHeader.getRemainingLength() != variableByteSize + payloadByteSize) {
             throw new Exception("Reamaining Length error");
         } else {
-            bos.write(MqttUtil.encodeIntToByte(fixedHeader.getRemainingLength()));
+            bos.write(MqttUtil.encodeIntToVariableBytes(fixedHeader.getRemainingLength()));
         }
 
         // write Variable Header
@@ -135,12 +142,12 @@ public class MqttEncoder {
         byte sessionPresent = (byte)(variableHeader.isSessionPresent() ? 1 : 0);
         byte connectReasonCode = variableHeader.getConnectReasonCode().getValue();
         byte[] connackProperties = encodeProperties(variableHeader.getConnackProperties());
-        byte[] connackPropertiesLength = MqttUtil.encodeIntToByte(connackProperties.length);
+        byte[] connackPropertiesLength = MqttUtil.encodeIntToVariableBytes(connackProperties.length);
 
         // 3.2.1 write the 1st byte of Fixed Header
         bos.write(encodeFixedHeaderByte1(fixedHeader));
         // 3.2.1 write the 2nd byte of Fixed Header
-        bos.write(MqttUtil.encodeIntToByte(2 + connackPropertiesLength.length +
+        bos.write(MqttUtil.encodeIntToVariableBytes(2 + connackPropertiesLength.length +
                 connackProperties.length));
 
         // 3.2.2 write Connack Variable Header
@@ -160,8 +167,12 @@ public class MqttEncoder {
      **/
     public static byte[] encodeProperties(MqttProperties mqttProperties) {
 
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        if(mqttProperties == null) {
+            return new byte[]{ 0x00 } ;
+        }
 
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        
         try {
             for(MqttProperties.MqttProperty mqttProperty : mqttProperties.getPropertyList()) {
                 switch (MqttPropertyType.valueOf(mqttProperty.getPropertyId())) {
@@ -217,7 +228,7 @@ public class MqttEncoder {
                     // Variable Byte Integer
                     case SUBSCRIPTION_IDENTIFIER:
                         bos.write(mqttProperty.getPropertyId());
-                        bos.write(MqttUtil.encodeIntToByte((Integer) mqttProperty.getValue()));
+                        bos.write(MqttUtil.encodeIntToVariableBytes((Integer) mqttProperty.getValue()));
                         break;
 
                     // UTF-8 String Pair
@@ -229,7 +240,7 @@ public class MqttEncoder {
                 }
             }
         } catch (Exception e) {
-                System.out.println("IO exception : " + e);
+                System.out.println("NULL Properties in func encodeProperties() : " + e);
         }
 
         return bos.toByteArray();

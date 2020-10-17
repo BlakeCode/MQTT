@@ -163,6 +163,10 @@ public class MqttDecoder {
      **/
     private MqttProperties decodeProperties(byte[] buffer) throws Exception {
 
+        if(buffer[0] == 0) {
+            return null;
+        }
+
         // decode Properties Length of Variable Header
         int propertiesLength = 0;
         int multiplier = 1;
