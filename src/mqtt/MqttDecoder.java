@@ -28,17 +28,24 @@ public class MqttDecoder {
 
         this.totalLength = buffer.length;
         fixedHeader = decodeFixedHeader(buffer);
-        variableHeader = decodeVariableHeader(buffer);
 
-        MqttPacket packet;
-        if(currentIndex + 1 == totalLength) {
-            packet = new MqttPacket(fixedHeader, variableHeader);
-        } else if (currentIndex + 1 < totalLength) {
-            payload = decodePayload(buffer);
-            packet = new MqttPacket(fixedHeader, variableHeader, payload);
+        if (fixedHeader.getRemainingLength() == this.totalLength - currentIndex) {
+
+            variableHeader = decodeVariableHeader(buffer);
+
+            MqttPacket packet;
+            if(currentIndex + 1 == totalLength) {
+                packet = new MqttPacket(fixedHeader, variableHeader);
+            } else if (currentIndex + 1 < totalLength) {
+                payload = decodePayload(buffer);
+                packet = new MqttPacket(fixedHeader, variableHeader, payload);
+            } else {
+                throw new Exception("decode payload error.");
+            }
         } else {
-            throw new Exception("decode payload error.");
+            throw new Exception("decode Variable Header error.");
         }
+
     }
 
     /**
@@ -192,11 +199,30 @@ public class MqttDecoder {
      **/
     private MqttPublishVariableHeader decodePublishVariableHeader(byte[] buffer) throws Exception {
 
-        return null;
+        // decode Topic Name
+        int topicNameLength = MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, currentIndex, currentIndex + 2));
+        String topicName = MqttUtil.decodeUTF8StringToString(MqttUtil.getBytes(buffer, currentIndex, currentIndex + topicNameLength));
+        currentIndex += topicNameLength;
+
+        // decode Packet Identifier - QoS is 1 or 2
+        int packetIdentifier = 0;
+        if (fixedHeader.getMqttQoS().getValue() > 0) {
+            packetIdentifier = MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, currentIndex, currentIndex + 2));
+            currentIndex += 2;
+        }
+
+        // decode Publish Properties
+        MqttProperties publishProperties = decodeProperties(buffer);
+
+        // decode Publish Payload
+        byte[] payload = MqttUtil.getBytes(buffer, currentIndex, topicNameLength);
+
+        return new MqttPublishVariableHeader(topicName, packetIdentifier, publishProperties);
+
     }
 
     /**
-     * description:
+     * description: decode Variable Header - PubAck
      * @author blake
      * date   2020-10-17 22:19:53
      * @param buffer
@@ -204,7 +230,25 @@ public class MqttDecoder {
      **/
     private MqttPubAckVariableHeader decodePubAckVariableHeader(byte[] buffer) throws Exception {
 
-        return null;
+        // decode PacketIdentifier
+        int packetIdentifier = MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, currentIndex, currentIndex + 2));
+        currentIndex += 2;
+
+        // decode PublishReasonCode
+        MqttPublishReasonCode reasonCode = MqttPublishReasonCode.SUCCESS;
+        if (fixedHeader.getRemainingLength() > 2) {
+            MqttPublishReasonCode.valueOf(buffer[currentIndex]);
+        }
+
+        // decode Property Length
+        int propertiesLength = 0;
+        if (fixedHeader.getRemainingLength() < 4) {
+            propertiesLength = 0;
+            return new MqttPubAckVariableHeader(packetIdentifier, reasonCode);
+        } else {
+            MqttProperties properties = decodeProperties(buffer);
+            return new MqttPubAckVariableHeader(packetIdentifier, reasonCode, properties);
+        }
     }
 
     /**
@@ -216,7 +260,7 @@ public class MqttDecoder {
      **/
     private MqttProperties decodeProperties(byte[] buffer) throws Exception {
 
-        if(buffer[0] == 0) {
+        if(buffer[currentIndex] == 0) {
             return null;
         }
 
@@ -320,6 +364,7 @@ public class MqttDecoder {
             }
         }
         currentIndex += propertiesLength;
+        properties.setPropertiesByteLength(propertiesLength);
         return properties;
     }
 

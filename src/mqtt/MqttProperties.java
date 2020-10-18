@@ -10,11 +10,15 @@ import java.util.ArrayList;
 public class MqttProperties {
 
     private final ArrayList<MqttProperties.MqttProperty> propertyList = new ArrayList<>();
+    private int propertiesByteLength;
 
     public ArrayList<MqttProperties.MqttProperty> getPropertyList() { return propertyList; }
 
     public void add(MqttProperties.MqttProperty mqttProperty) { propertyList.add(mqttProperty); }
     public void remove(MqttProperties.MqttProperty mqttProperty) { propertyList.remove(mqttProperty); }
+
+    public int getPropertiesByteLength() { return this.propertiesByteLength; }
+    public void setPropertiesByteLength(int length) { this.propertiesByteLength = length; }
 
     /**
      * @author blake

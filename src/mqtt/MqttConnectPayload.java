@@ -14,7 +14,7 @@ public class MqttConnectPayload {
     private String userName;
     private byte[] password;
 
-    // Contructor : Will Flag == 1
+    // Constructor : Will Flag == 1
     public MqttConnectPayload(String clientIdentifier, MqttProperties willProperties, String willTopic, byte[] willPayload, String userName, byte[] password) {
         this.clientIdentifier = clientIdentifier;
         this.willProperties = willProperties;
@@ -24,7 +24,7 @@ public class MqttConnectPayload {
         this.password = password;
     }
 
-    // Contructor : Will Flag == 0
+    // Constructor : Will Flag == 0
     public MqttConnectPayload(String clientIdentifier) {
         this.clientIdentifier = clientIdentifier;
     }

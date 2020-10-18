@@ -193,7 +193,10 @@ public class MqttEncoder {
         // 3.3.2.1 Topic Name
         byte[] topicNameBytes = MqttUtil.encodeStringToUTF8String(variableHeader.getTopicName());
         // 3.3.2.2 Packet Identifier
-        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        byte[] packetIdentifier = null;
+        if (fixedHeader.getMqttQoS().getValue() > 0) {
+            packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        }
         // 3.3.2.3 PUBLISH Properties
         byte[] publishProperties = encodeProperties(variableHeader.getPublishProperties());
         byte[] publishPropertiesLength = MqttUtil.encodeIntToVariableBytes(publishProperties.length);
@@ -250,6 +253,11 @@ public class MqttEncoder {
         bos.write(properties);
 
         return bos.toByteArray();
+    }
+
+    public static byte[] encodeSubscribepacket(MqttSubscribePacket packet) throws Exception {
+
+        return null;
     }
 
     /**
