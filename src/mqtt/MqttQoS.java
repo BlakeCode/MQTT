@@ -1,7 +1,7 @@
 package mqtt;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-01 15:04:23
  **/
 
@@ -19,10 +19,10 @@ public enum MqttQoS {
     
     /*
      * description:
-     * author blake
+     * @author blake
      * date   2020-10-01 15:30:25
-     * @param: value
-     * return mqtt.MqttQoS
+     * @param value
+     * @return mqtt.MqttQoS
      **/
     public static MqttQoS valueOf(int value) {
         switch (value) {

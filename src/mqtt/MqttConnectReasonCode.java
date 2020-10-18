@@ -1,7 +1,7 @@
 package mqtt;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-02 15:08:51
  **/
 
@@ -16,7 +16,7 @@ public enum MqttConnectReasonCode {
     UNSUPPORTED_PROTOCOL_VERSION((byte)0X84),
     CLIENT_IDENTIFIER_NOT_VALID((byte)0X85),
     BAD_USER_NAME_OR_PASSWORD((byte)0X86),
-    NOT_AUTHORIZED((byte)0X87),
+    NOT_AuthorIZED((byte)0X87),
     SERVER_UNAVAILABLE((byte)0X88),
     SERVER_BUSY((byte)0X89),
     BANNED((byte)0X8A),
@@ -42,10 +42,10 @@ public enum MqttConnectReasonCode {
 
     /**
      * description:
-     * author blake
+     * @author blake
      * date 2020-10-02 15:58:46
-     * para: value
-     * return mqtt.MqttConnectReasonCode
+     * @param value
+     * @return MqttConnectReasonCode
      **/
 
     public static MqttConnectReasonCode valueOf(byte value) {

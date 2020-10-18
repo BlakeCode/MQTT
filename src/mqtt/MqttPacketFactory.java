@@ -1,7 +1,7 @@
 package mqtt;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-02 14:22:41
  **/
 
@@ -16,6 +16,9 @@ public class MqttPacketFactory {
             case PUBLISH:
                 return new MqttPublishPacket(mqttFixedHeader, (MqttPublishVariableHeader) variableHeader, (byte[])payload);
             case PUBACK:
+            case PUBREC:
+            case PUBREL:
+            case PUBCOMP:
                 return new MqttPubAckPacket(mqttFixedHeader, (MqttPubAckVariableHeader) variableHeader);
             default:
                 throw new IllegalArgumentException("Illegal message type: " + mqttFixedHeader.getMqttPacketType());

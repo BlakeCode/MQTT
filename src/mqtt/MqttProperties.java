@@ -3,7 +3,7 @@ package mqtt;
 import java.util.ArrayList;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-02 14:18:57
  **/
 
@@ -17,7 +17,7 @@ public class MqttProperties {
     public void remove(MqttProperties.MqttProperty mqttProperty) { propertyList.remove(mqttProperty); }
 
     /**
-     * author blake
+     * @author blake
      * date 2020-10-07 16:42:41
      **/
 

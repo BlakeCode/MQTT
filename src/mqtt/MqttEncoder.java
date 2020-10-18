@@ -3,7 +3,7 @@ package mqtt;
 import java.io.*;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-02 17:59:27
  **/
 
@@ -28,10 +28,10 @@ public class MqttEncoder {
 
     /**
      * description: encode CONNECT packet
-     * author blake
+     * @author blake
      * date 2020-10-02 21:17:35
-     * @param: packet
-     * return byte[]
+     * @param packet
+     * @return byte[]
      **/
     public static byte[] encodeConnectPacket(MqttConnectPacket packet) throws Exception {
 
@@ -137,10 +137,10 @@ public class MqttEncoder {
 
     /**
      * description: encode CONNACK packet
-     * author blake
+     * @author blake
      * date   2020-10-17 15:52:50
-     * @param: packet
-     * return byte[]
+     * @param packet
+     * @return byte[]
      **/
     public static byte[] encodeConnAckPacket(MqttConnAckPacket packet) throws Exception {
 
@@ -175,10 +175,10 @@ public class MqttEncoder {
 
     /**
      * description: encode PUBLISH packet
-     * author blake
+     * @author blake
      * date   2020-10-17 15:55:29
-     * @param: packet
-     * return byte[]
+     * @param packet
+     * @return byte[]
      **/
     public static byte[] encodePublishPacket(MqttPublishPacket packet) throws Exception {
 
@@ -218,10 +218,10 @@ public class MqttEncoder {
 
     /**
      * description: encode PubAck packet
-     * author blake
+     * @author blake
      * date   2020-10-17 19:32:35
-     * @param: packet
-     * return byte[]
+     * @param packet
+     * @return byte[]
      **/
     public static byte[] encodePubAckPacket(MqttPubAckPacket packet) throws Exception {
 
@@ -254,10 +254,10 @@ public class MqttEncoder {
 
     /**
      * description: encode Properties to byte[]
-     * author blake
+     * @author blake
      * date 2020-10-07 18:02:30
-     * @param: mqttProperties
-     * return byte[]
+     * @param mqttProperties
+     * @return byte[]
      **/
     public static byte[] encodeProperties(MqttProperties mqttProperties) {
 
@@ -342,10 +342,10 @@ public class MqttEncoder {
 
     /**
      * description: 2.1.3 编码 Fixed Header的第一个字节
-     * author blake
+     * @author blake
      * date 2020-10-02 21:12:37
-     * @param: fixedHeader
-     * return byte
+     * @param fixedHeader
+     * @return byte
      **/
     public static byte encodeFixedHeaderByte1(MqttFixedHeader fixedHeader) {
 
@@ -377,10 +377,10 @@ public class MqttEncoder {
 
     /**
      * description: 3.1.2 Connect Flags
-     * author blake
+     * @author blake
      * date 2020-10-02 21:43:06
-     * @param: variableHeader
-     * return byte
+     * @param variableHeader
+     * @return byte
      **/
     public static byte encodeConnectVariableHeaderFlags(MqttConnectVariableHeader variableHeader) {
 
@@ -419,4 +419,5 @@ public class MqttEncoder {
 
         return (byte)number;
     }
+
 }

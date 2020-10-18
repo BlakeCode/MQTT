@@ -5,7 +5,7 @@ import io.netty.util.CharsetUtil;
 import java.util.Arrays;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-07 20:39:30
  **/
 
@@ -19,10 +19,10 @@ public class MqttDecoder {
 
     /**
      * description: decode the byte[] to MqttPacket
-     * author blake
+     * @author blake
      * date 2020-10-08 09:31:00
-     * @param: buffer
-     * return void
+     * @param buffer
+     * @return void
      **/
     public void decode(byte[] buffer) throws Exception {
 
@@ -43,10 +43,10 @@ public class MqttDecoder {
 
     /**
      * description: decode Fixed Header
-     * author blake
+     * @author blake
      * date 2020-10-08 10:09:09
-     * @param: buffer
-     * return mqtt.MqttFixedHeader
+     * @param buffer
+     * @return mqtt.MqttFixedHeader
      **/
     private MqttFixedHeader decodeFixedHeader(byte[] buffer) throws Exception{
 
@@ -84,10 +84,10 @@ public class MqttDecoder {
 
     /**
      * description: decode Variable Header
-     * author blake
+     * @author blake
      * date 2020-10-08 10:42:17
-     * @param: buffer
-     * return Object
+     * @param buffer
+     * @return Object
      **/
     private Object decodeVariableHeader(byte[] buffer) throws Exception {
 
@@ -98,6 +98,13 @@ public class MqttDecoder {
                 return decodeConnectVariableHeader(buffer);
             case CONNACK:
                 return decodeConnAckVariableHeader(buffer);
+            case PUBLISH:
+                return decodePublishVariableHeader(buffer);
+            case PUBACK:
+            case PUBREC:
+            case PUBREL:
+            case PUBCOMP:
+                return decodePubAckVariableHeader(buffer);
             default:
                 return null;
         }
@@ -105,10 +112,10 @@ public class MqttDecoder {
 
     /**
      * description: decode Payload in some packet type
-     * author blake
+     * @author blake
      * date   2020-10-17 15:46:30
-     * @param: buffer
-     * return Object
+     * @param buffer
+     * @return Object
      **/
     private Object decodePayload(byte[] buffer) throws Exception {
 
@@ -117,10 +124,10 @@ public class MqttDecoder {
 
     /**
      * description: decode Variable Header - Connect
-     * author blake
+     * @author blake
      * date 2020-10-08 10:45:42
-     * @param: buffer
-     * return mqtt.MqttConnectVariableHeader
+     * @param buffer
+     * @return mqtt.MqttConnectVariableHeader
      **/
     private MqttConnectVariableHeader decodeConnectVariableHeader(byte[] buffer) throws Exception {
 
@@ -159,10 +166,10 @@ public class MqttDecoder {
 
     /**
      * description: decode Variable Header - ConnAck
-     * author blake
+     * @author blake
      * date 2020-10-08 10:46:41
-     * @param: buffer
-     * return mqtt.MqttConnAckVariableHeader
+     * @param buffer
+     * @return mqtt.MqttConnAckVariableHeader
      **/
     private MqttConnAckVariableHeader decodeConnAckVariableHeader(byte[] buffer) throws Exception{
 
@@ -177,11 +184,35 @@ public class MqttDecoder {
     }
 
     /**
+     * description: decode Variable Header - Publish
+     * @author blake
+     * date   2020-10-17 22:17:42
+     * @param buffer
+     * @return mqtt.MqttPublishVariableHeader
+     **/
+    private MqttPublishVariableHeader decodePublishVariableHeader(byte[] buffer) throws Exception {
+
+        return null;
+    }
+
+    /**
      * description:
-     * author blake
+     * @author blake
+     * date   2020-10-17 22:19:53
+     * @param buffer
+     * @return mqtt.MqttPubAckVariableHeader
+     **/
+    private MqttPubAckVariableHeader decodePubAckVariableHeader(byte[] buffer) throws Exception {
+
+        return null;
+    }
+
+    /**
+     * description: decode Properties
+     * @author blake
      * date   2020-10-08 14:16:13
-     * @param: buffer
-     * return mqtt.MqttProperties
+     * @param buffer
+     * @return mqtt.MqttProperties
      **/
     private MqttProperties decodeProperties(byte[] buffer) throws Exception {
 

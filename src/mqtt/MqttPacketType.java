@@ -1,7 +1,7 @@
 package mqtt;
 
 /**
- * author blake
+ * @author blake
  * date 2020-10-01 17:15:51
  **/
 
@@ -35,10 +35,10 @@ public enum MqttPacketType {
 
     /*
      * description:
-     * author blake
+     * @author blake
      * date   2020-10-01 16:37:32
-     * @param: value
-     * return MqttPacketType
+     * @param value
+     * @return MqttPacketType
      **/
     public static MqttPacketType valueOf(int value) {
         if (value > 0 && value < VALUES.length) {

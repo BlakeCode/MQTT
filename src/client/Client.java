@@ -29,7 +29,7 @@ public class Client {
         MqttConnectPayload connectPayload =
                 new MqttConnectPayload("0001", null, null, null, "root", "123456".getBytes());
 
-        // 工厂化包装
+        // 简单工厂
         MqttPacket connectPacket = MqttPacketFactory.newPacket(connectFixedHeader, connectVariableHeader, connectPayload);
         outputStream.write(MqttEncoder.encode(connectPacket));
 
