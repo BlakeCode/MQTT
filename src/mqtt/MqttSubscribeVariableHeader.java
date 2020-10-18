@@ -2,26 +2,26 @@ package mqtt;
 
 public class MqttSubscribeVariableHeader {
 
-    private int packetidentifier;
+    private int packetIdentifier;
     private MqttProperties properties;
 
     public MqttSubscribeVariableHeader(int packetidentifier) {
         this(packetidentifier, null);
     }
 
-    public MqttSubscribeVariableHeader(int packetidentifier, MqttProperties properties) {
-        this.packetidentifier = packetidentifier;
+    public MqttSubscribeVariableHeader(int packetIdentifier, MqttProperties properties) {
+        this.packetIdentifier = packetIdentifier;
         this.properties = properties;
     }
 
-    public int getPacketidentifier() { return packetidentifier; }
+    public int getPacketIdentifier() { return packetIdentifier; }
 
     public MqttProperties getProperties() { return properties; }
 
     @Override
     public String toString() {
         return "MqttSubscribeVariableHeader{" +
-                "packetidentifier=" + packetidentifier +
+                "packetIdentifier=" + packetIdentifier +
                 ", properties=" + properties +
                 '}';
     }

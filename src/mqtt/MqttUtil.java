@@ -92,6 +92,7 @@ public final class MqttUtil {
 
         try {
             byte[] result = str.getBytes("UTF-8");
+            // preFixed 2 Byte header
             bos.write(encodeShortToTwoByte(result.length));
             bos.write(result);
         } catch (Exception e) {

@@ -18,7 +18,12 @@ public class MqttEncoder {
             case PUBLISH:
                 return encodePublishPacket((MqttPublishPacket)packet);
             case PUBACK:
+            case PUBREC:
+            case PUBREL:
+            case PUBCOMP:
                 return encodePubAckPacket((MqttPubAckPacket)packet);
+            case SUBSCRIBE:
+                return encodeSubscribePacket((MqttSubscribePacket)packet);
             default:
                 throw new IllegalArgumentException("Unknown packet type: " +
                         packet.getMqttFixedHeader().getMqttPacketType()
@@ -255,9 +260,48 @@ public class MqttEncoder {
         return bos.toByteArray();
     }
 
-    public static byte[] encodeSubscribepacket(MqttSubscribePacket packet) throws Exception {
+    /**
+     * description: encode Subscribe packet
+     * @author blake
+     * date   2020-10-18 20:16:01
+     * @param packet
+     * @return byte[]
+     **/
+    public static byte[] encodeSubscribePacket(MqttSubscribePacket packet) throws Exception {
 
-        return null;
+        // Fixed Header + Variable Header + Payload
+        MqttFixedHeader fixedHeader = packet.getSubscribeFixedHeader();
+        MqttSubscribeVariableHeader variableHeader = packet.getSubscribeVariableHeader();
+        MqttSubscribePayload payload = packet.getSubscribePayload();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        // 3.8.2 SUBSCRIBE Variable Header
+        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        // 3.8.2 SUBSCRIBE Variable Header
+        byte[] properties = encodeProperties(variableHeader.getProperties());
+        byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
+        int variableHeaderByteSize = 2 + propertiesLength.length + properties.length;
+
+        // 3.8.3 SUBSCRIBE Payload
+        byte[] topicFilter = MqttUtil.encodeStringToUTF8String(payload.getTopicFilter());
+        byte subscriptionOptions = encodeSubscriptionOptions(payload);
+        int payloadByteSize = topicFilter.length + 1;
+
+        // 3.8.1 write the 1st byte of Fixed Header
+        bos.write(encodeFixedHeaderByte1(fixedHeader));
+        // 3.8.1 write the 2nd byte of Fixed Header
+        bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payloadByteSize));
+        // 3.8.2 write SUBSCRIBE Variable Header
+        bos.write(packetIdentifier);
+        bos.write(propertiesLength);
+        bos.write(properties);
+        // 3.8.3 write SUBSCRIBE Payload
+        bos.write(topicFilter);
+        bos.write(subscriptionOptions);
+
+        return bos.toByteArray();
+
     }
 
     /**
@@ -428,4 +472,26 @@ public class MqttEncoder {
         return (byte)number;
     }
 
+
+    public static byte encodeSubscriptionOptions(MqttSubscribePayload payload) {
+
+        int number = 0;
+
+        // byte 0 - 1
+        number |= (payload.getMqttQoS().getValue()) & 3;
+
+        // byte 2
+        number |= payload.isNoLocal() ? 4 : 0;
+
+        // byte 3
+        number |= payload.isRetainAsPublished() ? 8 : 0;
+
+        // byte 4 - 5
+        number |= (payload.getRetainhandlingOption() & 3) << 4;
+
+        // byte 6 - 7
+        // number &= 0xC0
+
+        return (byte)number;
+    }
 }
