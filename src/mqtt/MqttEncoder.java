@@ -26,6 +26,8 @@ public class MqttEncoder {
                 return encodeSubscribePacket((MqttSubscribePacket)packet);
             case SUBACK:
                 return encodeSubAckPacket((MqttSubAckPacket)packet);
+            case UNSUBSCRIBE:
+                return encodeUnSubscribePacket((MqttUnSubscribePacket)packet);
             default:
                 throw new IllegalArgumentException("Unknown packet type: " +
                         packet.getMqttFixedHeader().getMqttPacketType()
@@ -283,7 +285,7 @@ public class MqttEncoder {
         // 3.8.2 SUBSCRIBE Variable Header
         byte[] properties = encodeProperties(variableHeader.getProperties());
         byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
-        int variableHeaderByteSize = 2 + propertiesLength.length + properties.length;
+        int variableHeaderByteSize = packetIdentifier.length + propertiesLength.length + properties.length;
 
         // 3.8.3 SUBSCRIBE Payload
         ByteArrayOutputStream subscribepayload = new ByteArrayOutputStream();
@@ -326,9 +328,10 @@ public class MqttEncoder {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         // 3.9.2 write SUBACK Variable Header
+        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
         byte[] properties = encodeProperties(variableHeader.getProperties());
         byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
-        int variableHeaderByteSize = propertiesLength.length + properties.length;
+        int variableHeaderByteSize = packetIdentifier.length + propertiesLength.length + properties.length;
 
         // 3.9.3 write SUBACK Payload
         int payloadByteSize = payload.getReasonCodeList().size();
@@ -338,6 +341,7 @@ public class MqttEncoder {
         // 3.9.1 write the 2nd byte of Fixed Header
         bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payloadByteSize));
         // 3.9.2 write SUBACK Variable Header
+        bos.write(packetIdentifier);
         bos.write(propertiesLength);
         bos.write(properties);
         // 3.9.3 write SUBACK Payload
@@ -355,29 +359,28 @@ public class MqttEncoder {
      * @param packet
      * @return byte[]
      **/
-    public static byte[] encodeUnsubscribePacket(MqttUnsubscribePacket packet) throws Exception {
+    public static byte[] encodeUnSubscribePacket(MqttUnSubscribePacket packet) throws Exception {
 
         // Fixed Header + Variable Header + Payload
-        MqttFixedHeader fixedHeader = packet.getUnsubscribeFixedHeader();
+        MqttFixedHeader fixedHeader = packet.getUnSubscribeFixedHeader();
         // SUBSCRIBE Variable Format == UNSUBSCRIBE Variable Format
-        MqttSubscribeVariableHeader variableHeader = packet.getUnsubscribeVariableHeader();
+        MqttSubscribeVariableHeader variableHeader = packet.getUnSubscribeVariableHeader();
         // SUBSCRIBE Payload == UNSUBSCRIBE Payload
-        MqttSubscribePayload payload = packet.getUnsubscribePayload();
+        MqttSubscribePayload payload = packet.getUnSubscribePayload();
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-        // 3.10.2 write UNSUBSCRIBE Variable Header
+        // 3.10.2 UNSUBSCRIBE Variable Header
         byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
-        // 3.10.2 write UNSUBSCRIBE Variable Header
+        // 3.10.2 UNSUBSCRIBE Variable Header
         byte[] properties = encodeProperties(variableHeader.getProperties());
         byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
-        int variableHeaderByteSize = 2 + propertiesLength.length + properties.length;
+        int variableHeaderByteSize = packetIdentifier.length + propertiesLength.length + properties.length;
 
-        // 3.10.3 write UNSUBSCRIBE Payload
+        // 3.10.3 UNSUBSCRIBE Payload
         ByteArrayOutputStream subscribepayload = new ByteArrayOutputStream();
         for (MqttTopicSubscription subscription : payload.getTopicSubscriptionList()) {
             subscribepayload.write(MqttUtil.encodeStringToUTF8String(subscription.getTopicFilter()));
-            subscribepayload.write(encodeSubscriptionOptions(subscription));
         }
         byte[] topicFilter = subscribepayload.toByteArray();
         int payloadByteSize = topicFilter.length;
@@ -386,12 +389,53 @@ public class MqttEncoder {
         bos.write(encodeFixedHeaderByte1(fixedHeader));
         // 3.10.1 write the 2nd byte of Fixed Header
         bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payloadByteSize));
-        // 3.10.2 write UNSBUSCRIBE Variable Header
+        // 3.10.2 write UNSUBSCRIBE Variable Header
         bos.write(packetIdentifier);
         bos.write(propertiesLength);
         bos.write(properties);
         // 3.10.3 write UNSUBSCRIBE Payload
         bos.write(topicFilter);
+
+        return bos.toByteArray();
+    }
+
+    /**
+     * description: encode UNSUBACK packet
+     * @author blake
+     * date   2020-10-19 19:36:38
+     * @param packet
+     * @return byte[]
+     **/
+    public static byte[] encodeUnSubAckPacket(MqttUnSubAckPacket packet) throws Exception {
+
+        // Fixed Header + Variable Header + Payload
+        MqttFixedHeader fixedHeader = packet.getUnSubAckFixedHeader();
+        MqttSubAckVariableHeader variableHeader = packet.getUnSubAckVariableHeader();
+        MqttSubAckPayload payload = packet.getUnSubAckPayload();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        // 3.11.2 UNSUBACK Variable Header
+        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        byte[] properties = encodeProperties(variableHeader.getProperties());
+        byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
+        int variableHeaderByteSize = packetIdentifier.length + propertiesLength.length + properties.length;
+
+        // 3.11.3 UNSUBACK Payload
+        int payloadByteSize = payload.getReasonCodeList().size();
+
+        // 3.11.1 write the 1st byte of Fixed Header
+        bos.write(encodeFixedHeaderByte1(fixedHeader));
+        // 3.11.1 write the 2nd byte of Fixed Header
+        bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payloadByteSize));
+        // 3.11.2 write UNSUBACK Variable Header
+        bos.write(packetIdentifier);
+        bos.write(propertiesLength);
+        bos.write(properties);
+        // 3.11.3 write UNSUBACK Payload
+        for(MqttSubscribeReasonCode reasonCode : payload.getReasonCodeList()) {
+            bos.write(reasonCode.getValue());
+        }
 
         return bos.toByteArray();
     }

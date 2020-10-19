@@ -17,6 +17,10 @@ public class MqttTopicSubscription {
         this.retainhandlingOption = retainhandlingOption;
     }
 
+    public MqttTopicSubscription(String topicFilter) {
+        this(topicFilter, null, false, false, 0);
+    }
+
     // Get Methord
     public String getTopicFilter() { return topicFilter; }
 

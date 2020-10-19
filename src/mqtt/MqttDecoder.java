@@ -112,6 +112,12 @@ public class MqttDecoder {
             case PUBREL:
             case PUBCOMP:
                 return decodePubAckVariableHeader(buffer);
+            case SUBSCRIBE:
+                return decodeSubscribeVariableHeader(buffer);
+            case SUBACK:
+                return decodeSubAckVariableHeader(buffer);
+            case UNSUBSCRIBE:
+                return decodeUnSubscribeVariableHeader(buffer);
             default:
                 return null;
         }
@@ -280,7 +286,11 @@ public class MqttDecoder {
      * @param buffer
      * @return mqtt.MqttSubAckVariableHeader
      **/
-    public MqttSubAckVariableHeader decodeSubsAckVariableHeader(byte[] buffer) throws Exception {
+    public MqttSubAckVariableHeader decodeSubAckVariableHeader(byte[] buffer) throws Exception {
+
+        // decode PacketIdentifier
+        int packetIdentifier = MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, currentIndex, currentIndex + 2));
+        currentIndex += 2;
 
         // decode Property Length
         MqttProperties properties = decodeProperties(buffer);
@@ -288,8 +298,22 @@ public class MqttDecoder {
             currentIndex += properties.getPropertiesByteLength();
         }
 
-        return new MqttSubAckVariableHeader(properties);
+        return new MqttSubAckVariableHeader(packetIdentifier, properties);
     }
+
+    /**
+     * description: decode Variable Header - UnSubscribe
+     * @author blake
+     * date   2020-10-19 18:51:58
+     * @param buffer
+     * @return mqtt.MqttSubscribeVariableHeader
+     **/
+    public MqttSubscribeVariableHeader decodeUnSubscribeVariableHeader(byte[] buffer) throws Exception {
+
+        return decodeSubscribeVariableHeader(buffer);
+
+    }
+
 
     /**
      * description: decode Properties
@@ -334,7 +358,7 @@ public class MqttDecoder {
                 case WILDCARD_SUBSCRIPTION_AVAILABLE:
                 case SUBSCRIPTION_IDENTIFIER_AVAILABLE:
                 case SHARED_SUBSCRIPTION_AVAILABLE:
-                    properties.add(properties.new MqttProperty<>(buffer[i+1], buffer[i]));
+                    properties.getPropertyList().add(properties.new MqttProperty<>(buffer[i+1], buffer[i]));
                     i += 2;
                     break;
 
@@ -345,7 +369,7 @@ public class MqttDecoder {
                 case AUTHENTICATION_DATA:
                 case TOPIC_ALIAS_MAXIMUM:
                 case TOPIC_ALIAS:
-                    properties.add(properties.new MqttProperty<>(
+                    properties.getPropertyList().add(properties.new MqttProperty<>(
                             MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, i+1,i+3)), buffer[i]
                     ));
                     i += 3;
@@ -356,7 +380,7 @@ public class MqttDecoder {
                 case SESSION_EXPIRY_INTERVAL:
                 case WILL_DELAY_INTERVAL:
                 case MAXIMUN_PACKET_SIZE:
-                    properties.add(properties.new MqttProperty<>(
+                    properties.getPropertyList().add(properties.new MqttProperty<>(
                         MqttUtil.decodeFourByteToInt(MqttUtil.getBytes(buffer, i+1, i+5)), buffer[i]
                     ));
                     i += 5;
@@ -372,7 +396,7 @@ public class MqttDecoder {
                 case REASON_STRING:
                     int strLength = buffer[i+1] * 128 + buffer[i+2];
                     String str = new String(MqttUtil.getBytes(buffer,i+3, i+3 + strLength), CharsetUtil.UTF_8);
-                    properties.add(properties.new MqttProperty<>(str, buffer[i]));
+                    properties.getPropertyList().add(properties.new MqttProperty<>(str, buffer[i]));
                     i += 3 + strLength;
                     break;
 
@@ -391,7 +415,7 @@ public class MqttDecoder {
                     if (index > 4) {
                         throw new Exception("remain length bigger than 4 bytes.");
                     }
-                    properties.add(properties.new MqttProperty<>(value, buffer[i]));
+                    properties.getPropertyList().add(properties.new MqttProperty<>(value, buffer[i]));
                     i += 1 + index;
                     break;
 
