@@ -286,9 +286,13 @@ public class MqttEncoder {
         int variableHeaderByteSize = 2 + propertiesLength.length + properties.length;
 
         // 3.8.3 SUBSCRIBE Payload
-        byte[] topicFilter = MqttUtil.encodeStringToUTF8String(payload.getTopicFilter());
-        byte subscriptionOptions = encodeSubscriptionOptions(payload);
-        int payloadByteSize = topicFilter.length + 1;
+        ByteArrayOutputStream subscribepayload = new ByteArrayOutputStream();
+        for (MqttTopicSubscription subscription : payload.getTopicSubscriptionList()) {
+            subscribepayload.write(MqttUtil.encodeStringToUTF8String(subscription.getTopicFilter()));
+            subscribepayload.write(encodeSubscriptionOptions(subscription));
+        }
+        byte[] topicFilter = subscribepayload.toByteArray();
+        int payloadByteSize = topicFilter.length;
 
         // 3.8.1 write the 1st byte of Fixed Header
         bos.write(encodeFixedHeaderByte1(fixedHeader));
@@ -300,7 +304,6 @@ public class MqttEncoder {
         bos.write(properties);
         // 3.8.3 write SUBSCRIBE Payload
         bos.write(topicFilter);
-        bos.write(subscriptionOptions);
 
         return bos.toByteArray();
 
@@ -341,6 +344,54 @@ public class MqttEncoder {
         for(MqttSubscribeReasonCode reasonCode : payload.getReasonCodeList()) {
             bos.write(reasonCode.getValue());
         }
+
+        return bos.toByteArray();
+    }
+
+    /**
+     * description: encode UNSUBSCRIBE packet
+     * @author blake
+     * date   2020-10-19 16:30:37
+     * @param packet
+     * @return byte[]
+     **/
+    public static byte[] encodeUnsubscribePacket(MqttUnsubscribePacket packet) throws Exception {
+
+        // Fixed Header + Variable Header + Payload
+        MqttFixedHeader fixedHeader = packet.getUnsubscribeFixedHeader();
+        // SUBSCRIBE Variable Format == UNSUBSCRIBE Variable Format
+        MqttSubscribeVariableHeader variableHeader = packet.getUnsubscribeVariableHeader();
+        // SUBSCRIBE Payload == UNSUBSCRIBE Payload
+        MqttSubscribePayload payload = packet.getUnsubscribePayload();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        // 3.10.2 write UNSUBSCRIBE Variable Header
+        byte[] packetIdentifier = MqttUtil.encodeShortToTwoByte(variableHeader.getPacketIdentifier());
+        // 3.10.2 write UNSUBSCRIBE Variable Header
+        byte[] properties = encodeProperties(variableHeader.getProperties());
+        byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
+        int variableHeaderByteSize = 2 + propertiesLength.length + properties.length;
+
+        // 3.10.3 write UNSUBSCRIBE Payload
+        ByteArrayOutputStream subscribepayload = new ByteArrayOutputStream();
+        for (MqttTopicSubscription subscription : payload.getTopicSubscriptionList()) {
+            subscribepayload.write(MqttUtil.encodeStringToUTF8String(subscription.getTopicFilter()));
+            subscribepayload.write(encodeSubscriptionOptions(subscription));
+        }
+        byte[] topicFilter = subscribepayload.toByteArray();
+        int payloadByteSize = topicFilter.length;
+
+        // 3.10.1 write the 1st byte of Fixed Header
+        bos.write(encodeFixedHeaderByte1(fixedHeader));
+        // 3.10.1 write the 2nd byte of Fixed Header
+        bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payloadByteSize));
+        // 3.10.2 write UNSBUSCRIBE Variable Header
+        bos.write(packetIdentifier);
+        bos.write(propertiesLength);
+        bos.write(properties);
+        // 3.10.3 write UNSUBSCRIBE Payload
+        bos.write(topicFilter);
 
         return bos.toByteArray();
     }
@@ -514,21 +565,21 @@ public class MqttEncoder {
     }
 
 
-    public static byte encodeSubscriptionOptions(MqttSubscribePayload payload) {
+    public static byte encodeSubscriptionOptions(MqttTopicSubscription topicSubscription) {
 
         int number = 0;
 
         // byte 0 - 1
-        number |= (payload.getMqttQoS().getValue()) & 3;
+        number |= (topicSubscription.getMqttQoS().getValue()) & 3;
 
         // byte 2
-        number |= payload.isNoLocal() ? 4 : 0;
+        number |= topicSubscription.isNoLocal() ? 4 : 0;
 
         // byte 3
-        number |= payload.isRetainAsPublished() ? 8 : 0;
+        number |= topicSubscription.isRetainAsPublished() ? 8 : 0;
 
         // byte 4 - 5
-        number |= (payload.getRetainhandlingOption() & 3) << 4;
+        number |= (topicSubscription.getRetainhandlingOption() & 3) << 4;
 
         // byte 6 - 7
         // number &= 0xC0

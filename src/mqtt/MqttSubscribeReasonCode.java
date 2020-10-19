@@ -21,6 +21,13 @@ public enum MqttSubscribeReasonCode {
 
     public byte getValue() { return this.value; }
 
+    /**
+     * description: return Key by Value
+     * @author blake
+     * date   2020-10-19 16:00:28
+     * @param value
+     * @return mqtt.MqttSubscribeReasonCode
+     **/
     public static MqttSubscribeReasonCode valueOf(byte value) {
         for (MqttSubscribeReasonCode reason : MqttSubscribeReasonCode.values()) {
             if (reason.value == value) {
