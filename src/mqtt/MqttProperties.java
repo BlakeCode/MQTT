@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class MqttProperties {
 
-    private final ArrayList<MqttProperties.MqttProperty> propertyList = new ArrayList<>();
+    private ArrayList<MqttProperties.MqttProperty> propertyList = new ArrayList<>();
     private int propertiesByteLength;
 
     public ArrayList<MqttProperties.MqttProperty> getPropertyList() { return propertyList; }

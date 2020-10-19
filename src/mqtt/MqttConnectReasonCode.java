@@ -32,8 +32,6 @@ public enum MqttConnectReasonCode {
     CONNECTION_RATE_EXCEEDED((byte)0X9F);
 
     private byte value;
-    private static final MqttConnectReasonCode[] VALUES = MqttConnectReasonCode.values();
-
     MqttConnectReasonCode(byte value) { this.value = value;}
 
     public byte getValue() {
@@ -41,7 +39,7 @@ public enum MqttConnectReasonCode {
     }
 
     /**
-     * description:
+     * description: return Key by Value
      * @author blake
      * date 2020-10-02 15:58:46
      * @param value
@@ -50,17 +48,11 @@ public enum MqttConnectReasonCode {
 
     public static MqttConnectReasonCode valueOf(byte value) {
 
-        MqttConnectReasonCode reasonCode = null;
-        try {
-            reasonCode = VALUES[value];
-        } catch (ArrayIndexOutOfBoundsException ex) {
-
+        for (MqttConnectReasonCode reasonCode : MqttConnectReasonCode.values()) {
+            if (reasonCode.value == value) {
+                return reasonCode;
+            }
         }
-
-        if(reasonCode == null) {
-            throw new IllegalArgumentException("unknown connect reason code: " + reasonCode);
-        } else {
-            return reasonCode;
-        }
+        return null;
     }
 }

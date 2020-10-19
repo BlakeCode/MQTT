@@ -18,37 +18,27 @@ public enum MqttPublishReasonCode {
     // PUCOMP Reason Code
     // Only SUCCESS(0) and
     PACKET_IDENTIFIER_NOT_FOUND((byte)0x92)
-
     ;
 
     private byte value;
     MqttPublishReasonCode(byte value) { this.value = value; }
 
-    private static final MqttPublishReasonCode[] VALUES = MqttPublishReasonCode.values();
-    public byte getValue() {
-        return this.value;
-    }
+    public byte getValue() { return this.value; }
 
     /**
-     * description: return reasonCode according to value
+     * description: return Key by Value
      * @author blake
-     * date   2020-10-17 19:21:49
+     * date   2020-10-19 15:47:53
      * @param value
      * @return mqtt.MqttPublishReasonCode
      **/
     public static MqttPublishReasonCode valueOf(byte value) {
-
-        MqttPublishReasonCode reasonCode = null;
-        try {
-            reasonCode = VALUES[value];
-        } catch (ArrayIndexOutOfBoundsException ex) {
-
+        for (MqttPublishReasonCode reasonCode : MqttPublishReasonCode.values()) {
+            if(reasonCode.value == value) {
+                return reasonCode;
+            }
         }
-
-        if(reasonCode == null) {
-            throw new IllegalArgumentException("unknown connect reason code: " + reasonCode);
-        } else {
-            return reasonCode;
-        }
+        return null;
     }
+
 }

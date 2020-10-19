@@ -237,7 +237,7 @@ public class MqttDecoder {
         // decode PublishReasonCode
         MqttPublishReasonCode reasonCode = MqttPublishReasonCode.SUCCESS;
         if (fixedHeader.getRemainingLength() > 2) {
-            MqttPublishReasonCode.valueOf(buffer[currentIndex]);
+            reasonCode = MqttPublishReasonCode.valueOf(buffer[currentIndex]);
         }
 
         // decode Property Length
@@ -249,6 +249,46 @@ public class MqttDecoder {
             MqttProperties properties = decodeProperties(buffer);
             return new MqttPubAckVariableHeader(packetIdentifier, reasonCode, properties);
         }
+    }
+
+    /**
+     * description: decode Variable Header - Subscribe
+     * @author blake
+     * date   2020-10-18 20:20:24
+     * @param buffer
+     * @return mqtt.MqttSubscribeVariableHeader
+     **/
+    public MqttSubscribeVariableHeader decodeSubscribeVariableHeader(byte[] buffer) throws Exception {
+
+        // decode PacketIdentifier
+        int packetIdentifier = MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, currentIndex, currentIndex + 2));
+        currentIndex += 2;
+
+        // decode Property Length
+        MqttProperties properties = decodeProperties(buffer);
+        if (properties != null) {
+            currentIndex += properties.getPropertiesByteLength();
+        }
+
+        return new MqttSubscribeVariableHeader(packetIdentifier, properties);
+    }
+
+    /**
+     * description: decode Variable Header - SubAck
+     * @author blake
+     * date   2020-10-18 21:34:55
+     * @param buffer
+     * @return mqtt.MqttSubAckVariableHeader
+     **/
+    public MqttSubAckVariableHeader decodeSubsAckVariableHeader(byte[] buffer) throws Exception {
+
+        // decode Property Length
+        MqttProperties properties = decodeProperties(buffer);
+        if (properties != null) {
+            currentIndex += properties.getPropertiesByteLength();
+        }
+
+        return new MqttSubAckVariableHeader(properties);
     }
 
     /**

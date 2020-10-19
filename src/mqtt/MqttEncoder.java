@@ -24,6 +24,8 @@ public class MqttEncoder {
                 return encodePubAckPacket((MqttPubAckPacket)packet);
             case SUBSCRIBE:
                 return encodeSubscribePacket((MqttSubscribePacket)packet);
+            case SUBACK:
+                return encodeSubAckPacket((MqttSubAckPacket)packet);
             default:
                 throw new IllegalArgumentException("Unknown packet type: " +
                         packet.getMqttFixedHeader().getMqttPacketType()
@@ -302,6 +304,45 @@ public class MqttEncoder {
 
         return bos.toByteArray();
 
+    }
+
+    /**
+     * description: encode SubAck packet
+     * @author blake
+     * date   2020-10-18 20:52:56
+     * @param packet
+     * @return byte[]
+     **/
+    public static byte[] encodeSubAckPacket(MqttSubAckPacket packet) throws Exception {
+
+        // Fixed Header + Variable Header + Payload
+        MqttFixedHeader fixedHeader = packet.getSubAckFixedHeader();
+        MqttSubAckVariableHeader variableHeader = packet.getSubAckVariableHeader();
+        MqttSubAckPayload payload = packet.getSubAckPayload();
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        // 3.9.2 write SUBACK Variable Header
+        byte[] properties = encodeProperties(variableHeader.getProperties());
+        byte[] propertiesLength = MqttUtil.encodeIntToVariableBytes(properties.length);
+        int variableHeaderByteSize = propertiesLength.length + properties.length;
+
+        // 3.9.3 write SUBACK Payload
+        int payloadByteSize = payload.getReasonCodeList().size();
+
+        // 3.9.1 write the 1st byte of Fixed Header
+        bos.write(encodeFixedHeaderByte1(fixedHeader));
+        // 3.9.1 write the 2nd byte of Fixed Header
+        bos.write(MqttUtil.encodeIntToVariableBytes(variableHeaderByteSize + payloadByteSize));
+        // 3.9.2 write SUBACK Variable Header
+        bos.write(propertiesLength);
+        bos.write(properties);
+        // 3.9.3 write SUBACK Payload
+        for(MqttSubscribeReasonCode reasonCode : payload.getReasonCodeList()) {
+            bos.write(reasonCode.getValue());
+        }
+
+        return bos.toByteArray();
     }
 
     /**
