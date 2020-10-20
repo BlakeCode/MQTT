@@ -5,6 +5,7 @@ public enum MqttSubscribeReasonCode {
     GRANTED_QOS_0((byte)0),
     GRANTED_QOS_1((byte)1),
     GRANTED_QOS_2((byte)2),
+    NO_SUBSCRIPTION_EXISTED((byte)0x11),
     UNSPECIFIED_ERROR((byte)0x80),
     IMPLEMENTATION_SPECIFIC_ERROR((byte)0x83),
     NOT_AUTHORIZED((byte)0x87),

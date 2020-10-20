@@ -441,6 +441,36 @@ public class MqttEncoder {
     }
 
     /**
+     * description: encode PINGREQ packet
+     * @author blake
+     * date   2020-10-20 10:47:57
+     * @param packet
+     * @return byte[]
+     **/
+    public static byte[] encodePingReqPacket(MqttPingReqPacket packet) throws Exception {
+
+        // Fixed Header
+        MqttFixedHeader fixedHeader = packet.getPingReqFixedHeader();
+
+        return new byte[] { encodeFixedHeaderByte1(fixedHeader), 0};
+    }
+
+    /**
+     * description: encode PINGRESP packet
+     * @author blake
+     * date   2020-10-20 10:51:43
+     * @param packet
+     * @return byte[]
+     **/
+    public static byte[] encodePingResppacket(MqttPingRespPacket packet) throws Exception {
+
+        // Fixed Header
+        MqttFixedHeader fixedHeader = packet.getPingRespFixedHeader();
+
+        return new byte[] { encodeFixedHeaderByte1(fixedHeader), 0};
+    }
+
+    /**
      * description: encode Properties to byte[]
      * @author blake
      * date 2020-10-07 18:02:30

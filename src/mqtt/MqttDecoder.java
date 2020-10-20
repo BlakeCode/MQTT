@@ -11,9 +11,7 @@ import java.util.Arrays;
 
 public class MqttDecoder {
 
-    private MqttFixedHeader fixedHeader;
-    private Object variableHeader;
-    private Object payload;
+    private MqttPacket packet;
 
     private int totalLength, currentIndex;
 
@@ -24,21 +22,23 @@ public class MqttDecoder {
      * @param buffer
      * @return void
      **/
-    public void decode(byte[] buffer) throws Exception {
+    public MqttPacket decode(byte[] buffer) throws Exception {
 
         this.totalLength = buffer.length;
-        fixedHeader = decodeFixedHeader(buffer);
+        packet.setMqttFixedHeader(decodeFixedHeader(buffer));
 
-        if (fixedHeader.getRemainingLength() == this.totalLength - currentIndex) {
+        if (packet.getMqttFixedHeader().getRemainingLength() == 0) {
+            return packet;
+        }
+        else if (packet.getMqttFixedHeader().getRemainingLength() == this.totalLength - currentIndex) {
 
-            variableHeader = decodeVariableHeader(buffer);
+            packet.setVariableHeader(decodeVariableHeader(buffer));
 
-            MqttPacket packet;
-            if(currentIndex + 1 == totalLength) {
-                packet = new MqttPacket(fixedHeader, variableHeader);
+            if (currentIndex + 1 == totalLength) {
+                return packet;
             } else if (currentIndex + 1 < totalLength) {
-                payload = decodePayload(buffer);
-                packet = new MqttPacket(fixedHeader, variableHeader, payload);
+                packet.setPayload(decodePayload(buffer));
+                return packet;
             } else {
                 throw new Exception("decode payload error.");
             }
@@ -98,7 +98,7 @@ public class MqttDecoder {
      **/
     private Object decodeVariableHeader(byte[] buffer) throws Exception {
 
-        MqttPacketType packetType = fixedHeader.getMqttPacketType();
+        MqttPacketType packetType = packet.getMqttFixedHeader().getMqttPacketType();
 
         switch (packetType) {
             case CONNECT:
@@ -212,7 +212,7 @@ public class MqttDecoder {
 
         // decode Packet Identifier - QoS is 1 or 2
         int packetIdentifier = 0;
-        if (fixedHeader.getMqttQoS().getValue() > 0) {
+        if (packet.getMqttFixedHeader().getMqttQoS().getValue() > 0) {
             packetIdentifier = MqttUtil.decodeTwoByteToInt(MqttUtil.getBytes(buffer, currentIndex, currentIndex + 2));
             currentIndex += 2;
         }
@@ -242,13 +242,13 @@ public class MqttDecoder {
 
         // decode PublishReasonCode
         MqttPublishReasonCode reasonCode = MqttPublishReasonCode.SUCCESS;
-        if (fixedHeader.getRemainingLength() > 2) {
+        if (packet.getMqttFixedHeader().getRemainingLength() > 2) {
             reasonCode = MqttPublishReasonCode.valueOf(buffer[currentIndex]);
         }
 
         // decode Property Length
         int propertiesLength = 0;
-        if (fixedHeader.getRemainingLength() < 4) {
+        if (packet.getMqttFixedHeader().getRemainingLength() < 4) {
             propertiesLength = 0;
             return new MqttPubAckVariableHeader(packetIdentifier, reasonCode);
         } else {

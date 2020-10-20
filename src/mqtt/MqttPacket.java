@@ -31,6 +31,12 @@ public class MqttPacket {
 
     public Object getPayload() { return payload; }
 
+    public void setMqttFixedHeader(MqttFixedHeader mqttFixedHeader) { this.mqttFixedHeader = mqttFixedHeader; }
+
+    public void setVariableHeader(Object variableHeader) { this.variableHeader = variableHeader; }
+
+    public void setPayload(Object payload) { this.payload = payload; }
+
     @Override
     public String toString() {
         return "MqttPacket{" +
